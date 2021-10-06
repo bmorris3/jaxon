@@ -2,6 +2,7 @@ from jax import jit, numpy as jnp, lax
 
 CONST_K, CONST_C, CONST_H = 1.380649e-16, 29979245800.0, 6.62607015e-27  # cgs
 
+
 @jit
 def log_hminus_continuum(wavelength_um, temperature, pressure,
                          volume_mixing_ratio_product, truncation_value=-100):
@@ -149,9 +150,12 @@ def dtauHminusCtm(nus, Tarr, Parr, dParr, volume_mixing_ratio_product, mmw, g):
     logg = jnp.log10(g)
     ddParr = dParr / Parr
     wavelength_um = 1e4 / nus[::-1]
-    dtauctm = (10 ** (log_hminus_continuum(wavelength_um, Tarr[:, None], Parr,
-                                           volume_mixing_ratio_product)
-                      + lognarr1[:, None] + logkb - logg - logm_ucgs)
-               * Tarr[:, None] / mmw * ddParr[:, None])
+    dtauctm = (
+        10 ** (log_hminus_continuum(wavelength_um, Tarr[:, None], Parr,
+                                    volume_mixing_ratio_product) +
+               lognarr1[:, None] + logkb - logg - logm_ucgs) *
+        Tarr[:, None] / mmw *
+        ddParr[:, None]
+    )
 
     return dtauctm

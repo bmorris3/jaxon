@@ -13,16 +13,19 @@ from .hatp7 import (
 )
 
 lcf = search_lightcurve(
-    planet_name, mission="Kepler", cadence="long"#, quarter=10 #[10, 11, 12]
+    planet_name, mission="Kepler", cadence="long"
+    # quarter=10
 ).download_all()
 
 slc = lcf.stitch()
 
 phases = ((slc.time.jd - t0) % period) / period
 in_eclipse = np.abs(phases - 0.5) < 1.5 * eclipse_half_dur
-in_transit = (phases < 1.5 * eclipse_half_dur) | (
-            phases > 1 - 1.5 * eclipse_half_dur)
-out_of_transit = np.logical_not(in_transit)# | in_eclipse)
+in_transit = (
+    (phases < 1.5 * eclipse_half_dur) |
+    (phases > 1 - 1.5 * eclipse_half_dur)
+)
+out_of_transit = np.logical_not(in_transit)
 
 slc = slc.flatten(
     polyorder=3, break_tolerance=10, window_length=1001, mask=~out_of_transit
@@ -30,9 +33,11 @@ slc = slc.flatten(
 
 phases = ((slc.time.jd - t0) % period) / period
 in_eclipse = np.abs(phases - 0.5) < 1.5 * eclipse_half_dur
-in_transit = (phases < 1.5 * eclipse_half_dur) | (
-            phases > 1 - 1.5 * eclipse_half_dur)
-out_of_transit = np.logical_not(in_transit)# | in_eclipse)
+in_transit = (
+    (phases < 1.5 * eclipse_half_dur) |
+    (phases > 1 - 1.5 * eclipse_half_dur)
+)
+out_of_transit = np.logical_not(in_transit)
 
 sc = sigma_clip(
     np.ascontiguousarray(slc.flux[out_of_transit], dtype=floatX),
@@ -47,7 +52,7 @@ time = np.ascontiguousarray(
 )
 
 bin_in_eclipse = np.abs(phase - 0.5) < eclipse_half_dur
-unbinned_flux_mean = np.mean(sc[~sc.mask].data)  # .mean()
+unbinned_flux_mean = np.mean(sc[~sc.mask].data)
 
 unbinned_flux_mean_ppm = 1e6 * (unbinned_flux_mean - 1)
 flux_normed = np.ascontiguousarray(
@@ -80,4 +85,3 @@ with pm.Model() as model:
     eclipse = 1 + pm.math.sum(eclipse_light_curves, axis=-1)
 
     eclipse_numpy = pmx.eval_in_model(eclipse)
-

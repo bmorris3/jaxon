@@ -2,7 +2,7 @@ from functools import partial
 
 import numpy as np
 from numpy import pi as pi64
-from jax import config, jit, numpy as jnp
+from jax import jit, numpy as jnp
 
 from .utils import trapz3d, floatX
 
@@ -120,11 +120,12 @@ def h_ml(omega_drag, alpha, theta, phi, C_11, m=1, l=1):
                  jnp.exp(-jnp.power(tilda_mu(theta, alpha), two) * half))
 
     result = prefactor * (
-                mu(theta) * m * H(l, theta, alpha) * jnp.cos(m * phi) +
-                alpha * omega_drag * (tilda_mu(theta, alpha) *
-                                      H(l, theta, alpha) -
-                                      H(l + one, theta, alpha)) *
-                jnp.sin(m * phi))
+        mu(theta) * m * H(l, theta, alpha) * jnp.cos(m * phi) +
+        alpha * omega_drag * (tilda_mu(theta, alpha) *
+                              H(l, theta, alpha) -
+                              H(l + one, theta, alpha)) *
+        jnp.sin(m * phi)
+    )
     return result
 
 
@@ -176,7 +177,6 @@ def blackbody2d(wavelengths, temperature):
     """
 
     return blackbody_lambda(wavelengths, temperature)
-
 
 
 @jit
@@ -231,11 +231,6 @@ def reflected_phase_curve(phases, omega, g, a_rp):
     )
 
     abs_alpha = jnp.abs(alpha)  # .astype(floatX)
-    alpha_sort_order = jnp.argsort(alpha)
-    sin_abs_sort_alpha = jnp.sin(
-        abs_alpha[alpha_sort_order])  # .astype(floatX)
-    sort_alpha = alpha[alpha_sort_order]  # .astype(floatX)
-
     gamma = jnp.sqrt(1 - omega)
     eps = (1 - gamma) / (1 + gamma)
 
@@ -321,11 +316,11 @@ def I(alpha, Phi):
     I_L = 1 / np.pi * (Phi * cos_alpha -
                        0.5 * jnp.sin(alpha - 2 * Phi))
     I_C = -1 / (24 * cos_alpha_2) * (
-            -3 * jnp.sin(alpha / 2 - Phi) +
-            jnp.sin(3 * alpha / 2 - 3 * Phi) +
-            6 * jnp.sin(3 * alpha / 2 - Phi) -
-            6 * jnp.sin(alpha / 2 + Phi) +
-            24 * jnp.sin(alpha / 2) ** 4 * I_0
+        -3 * jnp.sin(alpha / 2 - Phi) +
+        jnp.sin(3 * alpha / 2 - 3 * Phi) +
+        6 * jnp.sin(3 * alpha / 2 - Phi) -
+        6 * jnp.sin(alpha / 2 + Phi) +
+        24 * jnp.sin(alpha / 2) ** 4 * I_0
     )
 
     return I_S, I_L, I_C

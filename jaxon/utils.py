@@ -9,6 +9,7 @@ one = np.cast[floatX](1)
 two = np.cast[floatX](2)
 half = np.cast[floatX](0.5)
 
+
 @jit
 def sum2d(z):
     """

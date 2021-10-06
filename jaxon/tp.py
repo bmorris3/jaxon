@@ -2,9 +2,9 @@ from jax import numpy as jnp, jit
 from exojax.spec import rtransfer as rt
 
 NP = 50
-Parr, dParr, k=rt.pressure_layer(NP=NP, logPtop=-5, logPbtm=2.5)
-Parr_fine, dParr_fine, k=rt.pressure_layer(NP=100, logPtop=-5, logPbtm=2.5)
-mmw = 2.33 #mean molecular weight
+Parr, dParr, k = rt.pressure_layer(NP=NP, logPtop=-5, logPbtm=2.5)
+Parr_fine, dParr_fine, k = rt.pressure_layer(NP=100, logPtop=-5, logPbtm=2.5)
+mmw = 2.33  # mean molecular weight
 mmrH2 = 0.74
 
 element_number = 3
@@ -144,8 +144,6 @@ class PiecewisePolynomial(object):
         )
 
         return values
-
-
 
 
 def piecewise_poly(log_p, domain_boundaries, dof_values, element_number,

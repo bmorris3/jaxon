@@ -116,11 +116,12 @@ def h_ml(omega_drag, alpha, theta, phi, C_11, m=1, l=1):
                  jnp.exp(-jnp.power(tilda_mu(theta, alpha), two) * half))
 
     result = prefactor * (
-                mu(theta) * m * H(l, theta, alpha) * jnp.cos(m * phi) +
-                alpha * omega_drag * (tilda_mu(theta, alpha) *
-                                      H(l, theta, alpha) -
-                                      H(l + one, theta, alpha)) *
-                jnp.sin(m * phi))
+        mu(theta) * m * H(l, theta, alpha) * jnp.cos(m * phi) +
+        alpha * omega_drag * (tilda_mu(theta, alpha) *
+                              H(l, theta, alpha) -
+                              H(l + one, theta, alpha)) *
+        jnp.sin(m * phi)
+    )
     return result
 
 
