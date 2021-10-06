@@ -72,7 +72,7 @@ filt_wavelength, filt_trans = filt.wavelength.to(u.m).value, filt.transmittance
 
 
 def eclipse_model():
-    with pm.Model() as model:
+    with pm.Model():
         # Define a Keplerian orbit using `exoplanet`:
         orbit = xo.orbits.KeplerianOrbit(
             period=period, t0=0, b=b, rho_star=rho_star.to(u.g / u.cm ** 3),

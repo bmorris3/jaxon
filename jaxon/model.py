@@ -47,8 +47,7 @@ def model(
         filt_wavelength, filt_trans, a_rs, a_rp, T_s,
         nus=nus, wav=wav, Parr=Parr, dParr=dParr,
         bb_star_transformed=bb_star_transformed,
-        res=res_vis, #cnu_TiO=cnu_TiO,
-        # indexnu_TiO=indexnu_TiO,
+        res=res_vis,
         predict=False
 ):
     temps = numpyro.sample(
@@ -159,7 +158,7 @@ def model(
     Tarr = get_Tarr(temps, Parr)
     Fcgs, _, _ = exojax_spectrum(
         temps, jnp.power(10, log_vmr_prod), jnp.power(10, mmr_TiO),
-        Parr, dParr, nus, wav, res#, cnu_TiO, indexnu_TiO
+        Parr, dParr, nus, wav, res
     )
 
     fpfs_spectrum = rprs ** 2 * Fcgs / bb_star_transformed.value

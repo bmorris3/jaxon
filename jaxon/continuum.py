@@ -6,6 +6,7 @@ __all__ = [
     'dtauHminusCtm'
 ]
 
+
 @jit
 def log_hminus_continuum(wavelength_um, temperature, pressure,
                          volume_mixing_ratio_product, truncation_value=-100):

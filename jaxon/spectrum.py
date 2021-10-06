@@ -3,11 +3,8 @@ from jax import numpy as jnp, jit
 from astropy.modeling.models import BlackBody
 import astropy.units as u
 
-from exojax.spec import (
-    moldb, contdb, initspec, molinfo, planck
-)
-# from exojax.spec.modit import setdgm_exomol, exomol, xsmatrix
-from exojax.spec.rtransfer import nugrid, dtauM, dtauCIA, rtrun
+from exojax.spec import contdb, molinfo, planck
+from exojax.spec.rtransfer import nugrid, dtauCIA, rtrun
 
 
 __all__ = [
@@ -48,14 +45,27 @@ from .hatp7 import g
 from .tp import get_Tarr, Parr
 from .continuum import dtauHminusCtm
 
-cdbH2H2 = contdb.CdbCIA(
-    '/Users/brettmorris/git/exojax/.database/H2-H2_2011.cia',
-    [nus_vis.min(), nus_vis.max()]
-)
-cdbH2He = contdb.CdbCIA(
-    '/Users/brettmorris/git/exojax/.database/H2-He_2011.cia',
-    [nus_vis.min(), nus_vis.max()]
-)
+import os
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+if on_rtd:
+    cdbH2H2 = contdb.CdbCIA(
+        'H2-H2_2011.cia',
+        [nus_vis.min(), nus_vis.max()]
+    )
+    cdbH2He = contdb.CdbCIA(
+        'H2-He_2011.cia',
+        [nus_vis.min(), nus_vis.max()]
+    )
+else:
+    cdbH2H2 = contdb.CdbCIA(
+        '/Users/brettmorris/git/exojax/.database/H2-H2_2011.cia',
+        [nus_vis.min(), nus_vis.max()]
+    )
+    cdbH2He = contdb.CdbCIA(
+        '/Users/brettmorris/git/exojax/.database/H2-He_2011.cia',
+        [nus_vis.min(), nus_vis.max()]
+    )
 # mdbTiO = moldb.MdbExomol(
 #     '/Users/brettmorris/git/exojax/.database/TiO/48Ti-16O/Toto/',
 #     [nus_kepler.min(), nus_kepler.max()],
@@ -89,8 +99,7 @@ res = 0.2
 @jit
 def exojax_spectrum(
         temperatures, vmr_prod, mmr_TiO, Parr, dParr, nus, wav,
-        res, #cnu_TiO, indexnu_TiO
-    ):
+        res):
     Tarr = get_Tarr(temperatures, Parr)
 
     molmassH2 = molinfo.molmass("H2")
