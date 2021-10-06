@@ -6,6 +6,11 @@ from jax import jit, numpy as jnp
 
 from .utils import cos_2d, sinsq_2d, trapz2d, floatX
 
+__all__ = [
+    'thermal_phase_curve'
+]
+
+
 pi = np.cast[floatX](pi64)
 
 h = np.cast[floatX](6.62607015e-34)  # J s

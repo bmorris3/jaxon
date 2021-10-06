@@ -2,6 +2,9 @@ from jax import jit, numpy as jnp, lax
 
 CONST_K, CONST_C, CONST_H = 1.380649e-16, 29979245800.0, 6.62607015e-27  # cgs
 
+__all__ = [
+    'dtauHminusCtm'
+]
 
 @jit
 def log_hminus_continuum(wavelength_um, temperature, pressure,

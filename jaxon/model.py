@@ -11,22 +11,30 @@ from .utils import floatX, rng_key
 from .reflected import reflected_phase_curve
 from .thermal import thermal_phase_curve
 from .tp import get_Tarr, polynomial_order, element_number, Parr, dParr
-from .spectrum import exojax_spectrum, res_vis, nus, wav, cnu_TiO, indexnu_TiO
+from .spectrum import (
+    exojax_spectrum, res_vis, nus, wav, bb_star_transformed
+    #  cnu_TiO, indexnu_TiO
+)
 from .hatp7 import (
     rprs, all_depths, all_depths_errs, all_wavelengths, kepler_mean_wl,
-    a_rs, a_rp, T_s, bb_star_transformed
+    a_rs, a_rp, T_s
 )
 from .lightcurve import (
-    phase, time, flux_normed, flux_normed_err, eclipse_numpy, filt_wavelength,
+    phase, time, flux_normed, flux_normed_err, eclipse_model, filt_wavelength,
     filt_trans
 )
+
+__all__ = [
+    'model',
+    'run_mcmc'
+]
 
 model_kwargs = dict(
     phase=phase.astype(floatX),
     time=(time - time.mean()).astype(floatX),
     y=flux_normed.astype(floatX),
     yerr=flux_normed_err.astype(floatX),
-    eclipse_numpy=jnp.array(eclipse_numpy).astype(floatX),
+    eclipse_numpy=jnp.array(eclipse_model()).astype(floatX),
     filt_wavelength=jnp.array(filt_wavelength.astype(floatX)),
     filt_trans=jnp.array(filt_trans.astype(floatX)),
     a_rs=a_rs, a_rp=a_rp, T_s=T_s, n_temps=polynomial_order * element_number + 1,
@@ -39,8 +47,8 @@ def model(
         filt_wavelength, filt_trans, a_rs, a_rp, T_s,
         nus=nus, wav=wav, Parr=Parr, dParr=dParr,
         bb_star_transformed=bb_star_transformed,
-        res=res_vis, cnu_TiO=cnu_TiO,
-        indexnu_TiO=indexnu_TiO,
+        res=res_vis, #cnu_TiO=cnu_TiO,
+        # indexnu_TiO=indexnu_TiO,
         predict=False
 ):
     temps = numpyro.sample(
@@ -151,7 +159,7 @@ def model(
     Tarr = get_Tarr(temps, Parr)
     Fcgs, _, _ = exojax_spectrum(
         temps, jnp.power(10, log_vmr_prod), jnp.power(10, mmr_TiO),
-        Parr, dParr, nus, wav, res, cnu_TiO, indexnu_TiO
+        Parr, dParr, nus, wav, res#, cnu_TiO, indexnu_TiO
     )
 
     fpfs_spectrum = rprs ** 2 * Fcgs / bb_star_transformed.value

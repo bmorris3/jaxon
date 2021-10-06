@@ -1,5 +1,5 @@
-jaxon Documentation
--------------------
+Documentation
+-------------
 
 This is the documentation for jaxon.
 
@@ -7,7 +7,7 @@ This is the documentation for jaxon.
    :maxdepth: 2
    :caption: Contents:
 
-
+   jaxon/api.rst
 
 Indices and tables
 ==================

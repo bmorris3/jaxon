@@ -20,6 +20,12 @@ gl_6 = [-1.0, -7.65055 - 0.285232, 0.285232, 0.765055, 1.0]
 
 quadrature_nodes = [gl_0, gl_1, gl_2, gl_3, gl_4, gl_5, gl_6]
 
+__all__ = [
+    'Element',
+    'PiecewisePolynomial',
+    'piecewise_poly',
+    'get_Tarr'
+]
 
 class Element(object):
     def __init__(self, edges, order):

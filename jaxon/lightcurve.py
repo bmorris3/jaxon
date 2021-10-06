@@ -12,6 +12,10 @@ from .hatp7 import (
     planet_name, t0, period, eclipse_half_dur, b, rstar, rho_star, rp_rstar
 )
 
+__all__ = [
+    'eclipse_model'
+]
+
 lcf = search_lightcurve(
     planet_name, mission="Kepler", cadence="long"
     # quarter=10
@@ -66,22 +70,25 @@ filt = Filter.from_name("Kepler")
 filt.bin_down(4)   # This speeds up integration by orders of magnitude
 filt_wavelength, filt_trans = filt.wavelength.to(u.m).value, filt.transmittance
 
-with pm.Model() as model:
-    # Define a Keplerian orbit using `exoplanet`:
-    orbit = xo.orbits.KeplerianOrbit(
-        period=period, t0=0, b=b, rho_star=rho_star.to(u.g / u.cm ** 3),
-        r_star=float(rstar / u.R_sun)
-    )
 
-    # Compute the eclipse model (no limb-darkening):
-    eclipse_light_curves = xo.LimbDarkLightCurve([0, 0]).get_light_curve(
-        orbit=orbit._flip(rp_rstar), r=orbit.r_star,
-        t=phase * period,
-        texp=(30 * u.min).to(u.d).value
-    )
+def eclipse_model():
+    with pm.Model() as model:
+        # Define a Keplerian orbit using `exoplanet`:
+        orbit = xo.orbits.KeplerianOrbit(
+            period=period, t0=0, b=b, rho_star=rho_star.to(u.g / u.cm ** 3),
+            r_star=float(rstar / u.R_sun)
+        )
 
-    # Normalize the eclipse model to unity out of eclipse and
-    # zero in-eclipse
-    eclipse = 1 + pm.math.sum(eclipse_light_curves, axis=-1)
+        # Compute the eclipse model (no limb-darkening):
+        eclipse_light_curves = xo.LimbDarkLightCurve([0, 0]).get_light_curve(
+            orbit=orbit._flip(rp_rstar), r=orbit.r_star,
+            t=phase * period,
+            texp=(30 * u.min).to(u.d).value
+        )
 
-    eclipse_numpy = pmx.eval_in_model(eclipse)
+        # Normalize the eclipse model to unity out of eclipse and
+        # zero in-eclipse
+        eclipse = 1 + pm.math.sum(eclipse_light_curves, axis=-1)
+
+        eclipse_numpy = pmx.eval_in_model(eclipse)
+    return eclipse_numpy

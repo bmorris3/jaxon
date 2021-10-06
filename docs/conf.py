@@ -24,6 +24,7 @@ release = __version__
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
@@ -54,7 +55,12 @@ master_doc = 'index'
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {
+    'https://docs.python.org/': None,
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'celerite2': ('https://celerite2.readthedocs.io/en/latest/', None),
+    'astropy': ('https://docs.astropy.org/en/stable/', None)
+}
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -66,3 +72,7 @@ html_theme = 'alabaster'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ['_static']
+
+numpydoc_show_class_members = True
+autosummary_generate = True
+autosummary_imported_members = True

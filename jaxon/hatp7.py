@@ -1,9 +1,8 @@
 import numpy as np
 import astropy.units as u
 from astropy.constants import G
-from astropy.modeling.models import BlackBody
 
-from .spectrum import wav, wav_vis
+__all__ = []
 
 planet_name = "HAT-P-7"
 
@@ -47,16 +46,6 @@ kepler_depth_err = [10e-6]
 all_depths = np.concatenate([depths, spitzer_depth])
 all_depths_errs = np.concatenate([depths_err, spitzer_depth_err])
 all_wavelengths = np.concatenate([central_wl.value, spitzer_wl])
-
-bb_star = BlackBody(temperature=6300*u.K)
-
-bb_star_transformed = (bb_star(wav*u.nm)).to(
-    u.erg/u.s/u.cm**2/u.Hz/u.sr, u.spectral_density(wav*u.nm)
-) * np.pi
-
-bb_star_transformed_vis = (bb_star(wav_vis*u.nm)).to(
-    u.erg/u.s/u.cm**2/u.Hz/u.sr, u.spectral_density(wav_vis*u.nm)
-) * np.pi
 
 rprs = float(1.431*u.R_jup / (2.00 * u.R_sun))
 
