@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 from jax import numpy as jnp, jit
 from astropy.modeling.models import BlackBody
@@ -45,12 +47,12 @@ from .hatp7 import g
 from .tp import get_Tarr
 from .continuum import dtauHminusCtm
 
-import os
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 on_github = os.environ.get('GITHUB_ACTIONS', None) == 'True'
 
 if on_rtd or on_github:
     prefix = ''
+    os.makedirs(".database")
 else:
     prefix = '/Users/brettmorris/git/exojax/'
 
