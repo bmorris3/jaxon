@@ -42,7 +42,7 @@ bb_star_transformed_vis = (bb_star(wav_vis*u.nm)).to(
 ) * np.pi
 
 from .hatp7 import g
-from .tp import get_Tarr, Parr
+from .tp import get_Tarr
 from .continuum import dtauHminusCtm
 
 import os

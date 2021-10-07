@@ -35,8 +35,6 @@ spitzer_depth_err = 1e-2 * np.array([0.014, 0.008])
 
 def get_observed_depths():
     kepler_mean_wl = [0.641]  # um
-    kepler_depth = [19e-6]  # eyeballed
-    kepler_depth_err = [10e-6]
 
     all_depths = np.concatenate([depths, spitzer_depth])
     all_depths_errs = np.concatenate([depths_err, spitzer_depth_err])

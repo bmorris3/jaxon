@@ -67,10 +67,7 @@ def get_light_curve(cadence=cadence):
         slc.time.jd[out_of_transit][~sc.mask], dtype=floatX
     )
 
-    bin_in_eclipse = np.abs(phase - 0.5) < eclipse_half_dur
     unbinned_flux_mean = np.mean(sc[~sc.mask].data)
-
-    unbinned_flux_mean_ppm = 1e6 * (unbinned_flux_mean - 1)
     flux_normed = np.ascontiguousarray(
         1e6 * (sc[~sc.mask].data / unbinned_flux_mean - 1.0), dtype=floatX
     )
