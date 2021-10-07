@@ -16,18 +16,25 @@ from .spectrum import (
     #  cnu_TiO, indexnu_TiO
 )
 from .hatp7 import (
-    rprs, all_depths, all_depths_errs, all_wavelengths, kepler_mean_wl,
-    a_rs, a_rp, T_s
+    get_observed_depths, get_planet_params
 )
 from .lightcurve import (
-    phase, time, flux_normed, flux_normed_err, eclipse_model, filt_wavelength,
-    filt_trans
+    get_light_curve, eclipse_model, get_filter
 )
 
 __all__ = [
     'model',
     'run_mcmc'
 ]
+
+filt_wavelength, filt_trans = get_filter()
+phase, time, flux_normed, flux_normed_err = get_light_curve()
+
+(planet_name, a_rs, a_rp, T_s, rprs, t0, period, eclipse_half_dur, b,
+    rstar, rho_star, rp_rstar) = get_planet_params()
+
+(all_depths, all_depths_errs, all_wavelengths,
+    kepler_mean_wl) = get_observed_depths()
 
 model_kwargs = dict(
     phase=phase.astype(floatX),
@@ -37,7 +44,8 @@ model_kwargs = dict(
     eclipse_numpy=jnp.array(eclipse_model()).astype(floatX),
     filt_wavelength=jnp.array(filt_wavelength.astype(floatX)),
     filt_trans=jnp.array(filt_trans.astype(floatX)),
-    a_rs=a_rs, a_rp=a_rp, T_s=T_s, n_temps=polynomial_order * element_number + 1,
+    a_rs=a_rs, a_rp=a_rp, T_s=T_s,
+    n_temps=polynomial_order * element_number + 1,
     res=res_vis
 )
 
@@ -50,6 +58,48 @@ def model(
         res=res_vis,
         predict=False
 ):
+    """
+    The full joint model passed to numpyro.
+
+    Parameters
+    ----------
+    n_temps : int
+        Number of temperatures in the T-P profile
+    phase : numpy.ndarray
+        Phase of the planetary orbit
+    time : numpy.ndarray
+        Time in BJD
+    y : numpy.ndarray
+        Normalized flux in ppm
+    yerr : numpy.ndarray
+        Normalized flux error in ppm
+    eclipse_numpy : numpy.ndarray
+        Normalized eclipse vector
+    filt_wavelength : numpy.ndarray
+        Filter transmittance wavelength array
+    filt_trans : numpy.ndarray
+        Filter transmittance array
+    a_rs : float
+        Semimajor axis normalized by stellar radius
+    a_rp : float
+        Semimajor axis normalized by the planetary radius
+    T_s : float
+        Stellar effective temperature
+    nus : numpy.ndarray
+        Frequencies sampled in the spectrum
+    wav : numpy.ndarray
+        Wavelengths sampled in the spectrum
+    Parr : numpy.ndarray
+        Pressure array at each temperature in the T-P profile
+    dParr : numpy.ndarray
+        Delta pressure array at each temperature in the T-P profile
+    bb_star_transformed : numpy.ndarray
+        Planck function of the star
+    res : float
+        Spectral resolution
+    predict : bool
+        Turn on or off the gaussian process ``predict`` features
+    """
     temps = numpyro.sample(
         "temperatures", dist.Uniform(low=500, high=5000),
         sample_shape=(n_temps,)
@@ -64,11 +114,10 @@ def model(
     # Heng, Morris & Kitzmann (2021)
     omega = numpyro.sample('omega', dist.Uniform(low=0, high=1))
     g = numpyro.sample('g',
-                       dist.TwoSidedTruncatedDistribution(
-                           dist.Normal(loc=0, scale=0.01),
-                           low=-0.1, high=0.1
-                       )
-                       )
+        dist.TwoSidedTruncatedDistribution(
+            dist.Normal(loc=0, scale=0.01),
+            low=-0.1, high=0.1)
+    )
     reflected_ppm_grid, A_g = reflected_phase_curve(
         phases_grid, omega, g, a_rp
     )
@@ -78,8 +127,9 @@ def model(
     numpyro.deterministic('A_g', A_g)
     #     numpyro.deterministic('q', q)
     # Define the ellipsoidal variation parameterization (simple sinusoid)
-    ellipsoidal_amp = numpyro.sample('ellip_amp',
-                                     dist.Uniform(low=0, high=100))
+    ellipsoidal_amp = numpyro.sample(
+        'ellip_amp', dist.Uniform(low=0, high=100)
+    )
     ellipsoidal_model_ppm = - ellipsoidal_amp * jnp.cos(
         4 * np.pi * (phase - 0.5)) + ellipsoidal_amp
 
@@ -179,9 +229,12 @@ def model(
     )
 
     numpyro.sample('phase_curve', gp.numpyro_dist(), obs=y)
-    numpyro.factor('spectrum', dist.Normal(loc=interp_depths,
-                                           scale=all_depths_errs).log_prob(
-        all_depths))
+    numpyro.factor('spectrum',
+        dist.Normal(
+            loc=interp_depths,
+            scale=all_depths_errs
+        ).log_prob(all_depths)
+    )
 
     kepler_thermal_eclipse_depth_err = numpyro.sample(
         "kep_depth_err", dist.Uniform(low=1e-6, high=100e-6)
@@ -194,14 +247,26 @@ def model(
     )
 
 
-def run_mcmc(run_title='tmp'):
+def run_mcmc(run_title='tmp', num_warmup=5, num_samples=10):
+    """
+    Run MCMC with the NUTS via numpyro.
+
+    Parameters
+    ----------
+    run_title : str
+        Name of the run
+    num_warmup : int
+        Number of iterations in the burn-in phase
+    num_samples : int
+        Number of iterations of the sampler
+    """
     print('Start MCMC')
     mcmc = MCMC(
         sampler=NUTS(
             model, dense_mass=True,
         ),
-        num_warmup=5,
-        num_samples=10,
+        num_warmup=num_warmup,
+        num_samples=num_samples,
         chain_method='parallel',
         num_chains=len(jax.devices()),
     )

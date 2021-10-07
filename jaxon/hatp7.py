@@ -32,36 +32,40 @@ spitzer_wl = [3.6, 4.5]
 spitzer_depth = 1e-2 * np.array([0.161, 0.186])
 spitzer_depth_err = 1e-2 * np.array([0.014, 0.008])
 
-# plt.plot(
-#     central_wl, depths, 'o'
-# )
-# plt.plot(
-#     spitzer_wl, spitzer_depth, 'o'
-# )
 
-kepler_mean_wl = [0.641]  # um
-kepler_depth = [19e-6]  # eyeballed
-kepler_depth_err = [10e-6]
+def get_observed_depths():
+    kepler_mean_wl = [0.641]  # um
+    kepler_depth = [19e-6]  # eyeballed
+    kepler_depth_err = [10e-6]
 
-all_depths = np.concatenate([depths, spitzer_depth])
-all_depths_errs = np.concatenate([depths_err, spitzer_depth_err])
-all_wavelengths = np.concatenate([central_wl.value, spitzer_wl])
+    all_depths = np.concatenate([depths, spitzer_depth])
+    all_depths_errs = np.concatenate([depths_err, spitzer_depth_err])
+    all_wavelengths = np.concatenate([central_wl.value, spitzer_wl])
+    return all_depths, all_depths_errs, all_wavelengths, kepler_mean_wl
+
 
 rprs = float(1.431*u.R_jup / (2.00 * u.R_sun))
 
 g = (G * u.M_jup / u.R_jup**2).to(u.cm/u.s**2).value
 
-t0 = 2454954.357462  # Bonomo 2017
-period = 2.204740    # Stassun 2017
-rp = 16.9 * u.R_earth  # Stassun 2017
-rstar = 1.991 * u.R_sun  # Berger 2017
-a = 4.13 * rstar     # Stassun 2017
-duration = 4.0398 / 24  # Holczer 2016
-b = 0.4960           # Esteves 2015
-rho_star = 0.27 * u.g / u.cm ** 3  # Stassun 2017
-T_s = 6449           # Berger 2018
 
-a_rs = float(a / rstar)
-a_rp = float(a / rp)
-rp_rstar = float(rp / rstar)
-eclipse_half_dur = duration / period / 2
+def get_planet_params():
+    t0 = 2454954.357462  # Bonomo 2017
+    period = 2.204740    # Stassun 2017
+    rp = 16.9 * u.R_earth  # Stassun 2017
+    rstar = 1.991 * u.R_sun  # Berger 2017
+    a = 4.13 * rstar     # Stassun 2017
+    duration = 4.0398 / 24  # Holczer 2016
+    b = 0.4960           # Esteves 2015
+    rho_star = 0.27 * u.g / u.cm ** 3  # Stassun 2017
+    T_s = 6449           # Berger 2018
+
+    a_rs = float(a / rstar)
+    a_rp = float(a / rp)
+    rp_rstar = float(rp / rstar)
+    eclipse_half_dur = duration / period / 2
+
+    return (
+        planet_name, a_rs, a_rp, T_s, rprs, t0, period, eclipse_half_dur, b,
+        rstar, rho_star, rp_rstar
+    )

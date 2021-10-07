@@ -47,25 +47,21 @@ from .continuum import dtauHminusCtm
 
 import os
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+on_github = os.environ.get('GITHUB_ACTIONS', None) == 'True'
 
-if on_rtd:
-    cdbH2H2 = contdb.CdbCIA(
-        'H2-H2_2011.cia',
-        [nus_vis.min(), nus_vis.max()]
-    )
-    cdbH2He = contdb.CdbCIA(
-        'H2-He_2011.cia',
-        [nus_vis.min(), nus_vis.max()]
-    )
+if on_rtd or on_github:
+    prefix = ''
 else:
-    cdbH2H2 = contdb.CdbCIA(
-        '/Users/brettmorris/git/exojax/.database/H2-H2_2011.cia',
-        [nus_vis.min(), nus_vis.max()]
-    )
-    cdbH2He = contdb.CdbCIA(
-        '/Users/brettmorris/git/exojax/.database/H2-He_2011.cia',
-        [nus_vis.min(), nus_vis.max()]
-    )
+    prefix = '/Users/brettmorris/git/exojax/'
+
+cdbH2H2 = contdb.CdbCIA(
+    prefix + '.database/H2-H2_2011.cia',
+    [nus_vis.min(), nus_vis.max()]
+)
+cdbH2He = contdb.CdbCIA(
+    prefix + '.database/H2-He_2011.cia',
+    [nus_vis.min(), nus_vis.max()]
+)
 # mdbTiO = moldb.MdbExomol(
 #     '/Users/brettmorris/git/exojax/.database/TiO/48Ti-16O/Toto/',
 #     [nus_kepler.min(), nus_kepler.max()],
@@ -83,8 +79,8 @@ else:
 Pref = 1  # bar
 
 
-def fT(T0, alpha):
-    return T0[:, None] * (Parr[None, :]/Pref) ** alpha[:, None]
+# def _fT(T0, alpha):
+#     return T0[:, None] * (Parr[None, :]/Pref) ** alpha[:, None]
 
 
 T0_test = np.array([1000.0, 1700.0, 1000.0, 1700.0])

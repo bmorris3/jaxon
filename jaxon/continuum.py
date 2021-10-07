@@ -10,7 +10,27 @@ __all__ = [
 @jit
 def log_hminus_continuum(wavelength_um, temperature, pressure,
                          volume_mixing_ratio_product, truncation_value=-100):
+    """
+    Compute the H-minus continuum.
 
+    Parameters
+    ----------
+    wavelength_um : numpy.ndarray
+        Wavelength in microns
+    temperature : numpy.ndarray
+        Array of temperatures
+    pressure : numpy.ndarray
+        Array of pressures
+    volume_mixing_ratio_product : float
+        Product of the VMR of the H- abundance
+    truncation_value : float
+        Truncate values below log10 of ``truncation_value``
+
+    Returns
+    -------
+    absorption_coeff : tensor-like
+        Log10 absorption coefficient
+    """
     # first, compute the cross sections (in cm4/dyne)
     kappa_bf = bound_free_absorption(wavelength_um, temperature)
     kappa_ff = free_free_absorption(wavelength_um, temperature)
@@ -30,6 +50,21 @@ def log_hminus_continuum(wavelength_um, temperature, pressure,
 
 @jit
 def bound_free_absorption(wavelength_um, temperature):
+    """
+    Bound-free absorption.
+
+    Parameters
+    ----------
+    wavelength_um : numpy.ndarray
+        Wavelength in micron
+    temperature : numpy.ndarray
+        Temperature array
+
+    Returns
+    -------
+    kappa_bf : tensor-like
+        Bound-free absorption
+    """
     # Note: alpha has a value of 1.439e4 micron-1 K-1, the value stated in John (1988) is wrong
     # here, we express alpha using physical constants
     alpha = CONST_C * CONST_H / CONST_K * 10000.0
@@ -70,6 +105,21 @@ def bound_free_absorption(wavelength_um, temperature):
 
 @jit
 def free_free_absorption(wavelength_um, temperature):
+    """
+    Free-free absorption via John (1988).
+
+    Parameters
+    ----------
+    wavelength_um : numpy.ndarray
+        Wavelength in micron
+    temperature : numpy.ndarray
+        Temperature array
+
+    Returns
+    -------
+    kappa_ff : tensor-like
+        Free-free absorption
+    """
     # coefficients from John (1988)
     # to follow his notation (which starts at an index of 1), the 0-index components are 0
     # for wavelengths larger than 0.3645 micron
@@ -123,19 +173,21 @@ def free_free_absorption(wavelength_um, temperature):
 
 @jit
 def dtauHminusCtm(nus, Tarr, Parr, dParr, volume_mixing_ratio_product, mmw, g):
-    """dtau of the H- continuum
+    """
+    dtau of the H- continuum
 
-    Args:
-       nus: wavenumber matrix (cm-1)
-       Tarr: temperature array (K)
-       Parr: temperature array (bar)
-       dParr: delta temperature array (bar)
-       volume_mixing_ratio_product: number density for e- times number density for H [N_layer]
-       mmw: mean molecular weight of atmosphere
-       g: gravity (cm2/s)
-       nucia: wavenumber array for CIA
-       tcia: temperature array for CIA
-       logac: log10(absorption coefficient of CIA)
+    Parameters
+    ----------
+    nus: wavenumber matrix (cm-1)
+    Tarr: temperature array (K)
+    Parr: temperature array (bar)
+    dParr: delta temperature array (bar)
+    volume_mixing_ratio_product: number density for e- times number density for H [N_layer]
+    mmw: mean molecular weight of atmosphere
+    g: gravity (cm2/s)
+    nucia: wavenumber array for CIA
+    tcia: temperature array for CIA
+    logac: log10(absorption coefficient of CIA)
 
     Returns:
        optical depth matrix  [N_layer, N_nus]

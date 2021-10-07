@@ -29,6 +29,11 @@ __all__ = [
 
 
 class Element(object):
+    """
+    An element of the piecewise-polynomial temperature grid.
+
+    Thanks Daniel Kitzmann!
+    """
     def __init__(self, edges, order):
         self.reference_vertices = quadrature_nodes[order]
 
@@ -73,6 +78,11 @@ class Element(object):
 
 
 class PiecewisePolynomial(object):
+    """
+    Piecewise-polynomial temperature-pressure profile parameterization.
+
+    Thanks Daniel Kitzmann!
+    """
     def __init__(self, element_number, polynomial_order, domain_boundaries,
                  dof_values):
         self.nb_elements = 0
@@ -155,6 +165,27 @@ class PiecewisePolynomial(object):
 
 def piecewise_poly(log_p, domain_boundaries, dof_values, element_number,
                    polynomial_order):
+    """
+    Piecewise polynomial functional implementation.
+
+    Parameters
+    ----------
+    log_p : numpy.ndarray
+        log10 of the pressure array
+    domain_boundaries : numpy.ndarray
+        Upper/lower pressure boundaries (bar)
+    dof_values : numpy.ndarray
+        Values of the degrees of freedom
+     element_number : int
+        Number of elements in the piecewise polynomial parameterization
+    polynomial_order : int
+        Polynomial order in the piecewise polynomial parameterization
+
+    Returns
+    -------
+    piecewise : numpy.ndarray
+        Temperatures at each pressure
+    """
     pp = PiecewisePolynomial(
         element_number=element_number, polynomial_order=polynomial_order,
         domain_boundaries=jnp.array(domain_boundaries),
@@ -169,6 +200,20 @@ ppj = jit(piecewise_poly, static_argnums=(3, 4))
 @jit
 def get_Tarr(temperatures, Parr, element_number=element_number,
              polynomial_order=polynomial_order):
+    """
+    For a set of temperatures and pressures, get the temperature array.
+
+    Parameters
+    ----------
+    temperatures : numpy.ndarray
+        Temperature array
+    Parr : numpy.ndarray
+        Pressure array
+    element_number : int
+        Number of elements in the piecewise polynomial parameterization
+    polynomial_order : int
+        Polynomial order in the piecewise polynomial parameterization
+    """
     log_p = jnp.log10(jnp.sort(Parr)[::-1])
     domain_boundaries = [Parr.max() * 2, Parr.min() * 0.5]
 
