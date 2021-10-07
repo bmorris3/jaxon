@@ -176,7 +176,7 @@ def piecewise_poly(log_p, domain_boundaries, dof_values, element_number,
         Upper/lower pressure boundaries (bar)
     dof_values : numpy.ndarray
         Values of the degrees of freedom
-     element_number : int
+    element_number : int
         Number of elements in the piecewise polynomial parameterization
     polynomial_order : int
         Polynomial order in the piecewise polynomial parameterization
