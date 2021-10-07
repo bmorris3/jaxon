@@ -50,7 +50,7 @@ from .continuum import dtauHminusCtm
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 on_github = os.environ.get('GITHUB_ACTIONS', None) == 'True'
 
-if on_rtd or on_github:
+if (on_rtd or on_github) or not os.path.exists('/Users/brettmorris/'):
     prefix = ''
     os.makedirs(".database")
 else:
