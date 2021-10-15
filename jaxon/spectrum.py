@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 from jax import numpy as jnp, jit
-from astropy.modeling.models import BlackBody
+from expecto import get_spectrum
 import astropy.units as u
 
 from exojax.spec import contdb, molinfo, planck
@@ -31,17 +31,38 @@ nus_spitzer, wav_spitzer, res_spitzer = nugrid(
 
 nus = jnp.concatenate([nus_spitzer, nus_wfc3, nus_kepler])
 wav = jnp.concatenate([wav_kepler, wav_wfc3, wav_spitzer])
-nus_vis, wav_vis, res_vis = nugrid(300, 6000, 100, "nm", xsmode="modit")
+nus_vis, wav_vis, res_vis = nugrid(300, 5500, 100, "nm", xsmode="modit")
 
-bb_star = BlackBody(temperature=6300*u.K)
+# bb_star = BlackBody(temperature=6300*u.K)
 
-bb_star_transformed = (bb_star(wav*u.nm)).to(
-    u.erg/u.s/u.cm**2/u.Hz/u.sr, u.spectral_density(wav*u.nm)
-) * np.pi
+# bb_star_transformed = (bb_star(wav*u.nm)).to(
+#     u.erg/u.s/u.cm**2/u.Hz/u.sr, u.spectral_density(wav*u.nm)
+# ) * np.pi
+#
+# bb_star_transformed_vis = (bb_star(wav_vis*u.nm)).to(
+#     u.erg/u.s/u.cm**2/u.Hz/u.sr, u.spectral_density(wav_vis*u.nm)
+# ) * np.pi
 
-bb_star_transformed_vis = (bb_star(wav_vis*u.nm)).to(
-    u.erg/u.s/u.cm**2/u.Hz/u.sr, u.spectral_density(wav_vis*u.nm)
-) * np.pi
+stellar_spec = get_spectrum(6300, 4.5, cache=True)
+
+
+stellar_spectrum = np.interp(
+    (wav*u.nm).to(u.um).value,
+    stellar_spec.wavelength.to(u.um).value,
+    stellar_spec.flux.to(
+        u.erg/u.s/u.cm**2/u.Hz,
+        u.spectral_density(stellar_spec.wavelength)
+    ).value
+)
+
+stellar_spectrum_vis = np.interp(
+    wav_vis / 1000,
+    stellar_spec.wavelength.to(u.um).value,
+    stellar_spec.flux.to(
+        u.erg/u.s/u.cm**2/u.Hz,
+        u.spectral_density(stellar_spec.wavelength)
+    ).value
+)
 
 from .hatp7 import g
 from .tp import get_Tarr
@@ -96,8 +117,8 @@ res = 0.2
 
 @jit
 def exojax_spectrum(
-        temperatures, vmr_prod, mmr_TiO, Parr, dParr, nus, wav,
-        res):
+        temperatures, vmr_prod, mmr_TiO, Parr, dParr, nus, wav
+):
     Tarr = get_Tarr(temperatures, Parr)
 
     molmassH2 = molinfo.molmass("H2")

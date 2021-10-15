@@ -20,7 +20,7 @@ cadence = "long"
 cadence_duration = 30 * u.min
 
 
-def get_light_curve(cadence=cadence):
+def get_light_curve(quarter=None, cadence=cadence):
     """
     Parameters
     ----------
@@ -28,11 +28,11 @@ def get_light_curve(cadence=cadence):
         Kepler cadence mode
     """
     (planet_name, a_rs, a_rp, T_s, rprs, t0, period, eclipse_half_dur, b,
-        rstar, rho_star, rp_rstar) = get_planet_params()
+        rstar, rho_star, rp_rstar, mstar, mass) = get_planet_params()
 
     lcf = search_lightcurve(
-        planet_name, mission="Kepler", cadence=cadence
-        # quarter=10
+        planet_name, mission="Kepler", cadence=cadence,
+        quarter=quarter
     ).download_all()
 
     slc = lcf.stitch()
@@ -94,7 +94,7 @@ def get_filter():
     return filt_wavelength, filt_trans
 
 
-def eclipse_model(cadence_duration=cadence_duration):
+def eclipse_model(quarter=None, cadence_duration=cadence_duration):
     """
     Compute the (static) eclipse model
 
@@ -110,14 +110,14 @@ def eclipse_model(cadence_duration=cadence_duration):
         in-eclipse.
     """
     (planet_name, a_rs, a_rp, T_s, rprs, t0, period, eclipse_half_dur, b,
-        rstar, rho_star, rp_rstar) = get_planet_params()
-    phase, time, flux_normed, flux_normed_err = get_light_curve()
+        rstar, rho_star, rp_rstar, mstar, mass) = get_planet_params()
+    phase, time, flux_normed, flux_normed_err = get_light_curve(quarter=quarter)
 
     with pm.Model():
         # Define a Keplerian orbit using `exoplanet`:
         orbit = xo.orbits.KeplerianOrbit(
             period=period, t0=0, b=b, rho_star=rho_star.to(u.g / u.cm ** 3),
-            r_star=float(rstar / u.R_sun)
+            r_star=rstar
         )
 
         # Compute the eclipse model (no limb-darkening):

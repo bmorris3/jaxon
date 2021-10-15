@@ -62,8 +62,9 @@ def get_planet_params():
     a_rp = float(a / rp)
     rp_rstar = float(rp / rstar)
     eclipse_half_dur = duration / period / 2
-
+    mstar = 1.56
+    mass = 1.84
     return (
         planet_name, a_rs, a_rp, T_s, rprs, t0, period, eclipse_half_dur, b,
-        rstar, rho_star, rp_rstar
+        rstar.value, rho_star, rp_rstar, mstar, mass
     )
