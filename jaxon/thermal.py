@@ -206,6 +206,17 @@ def integrate_planck(filt_wavelength, filt_trans,
     return int_bb_num
 
 
+def temperature_map(hotspot_offset, omega_drag,
+                    alpha, C_11, T_s, a_rs, A_B,
+                    theta2d, phi2d, f):
+    h_ml_sum = h_ml_sum_theano(hotspot_offset, omega_drag,
+                               alpha, theta2d, phi2d, C_11)
+    T_eq = f * T_s * jnp.power(a_rs, -half)
+
+    T = T_eq * jnp.power(one - A_B, half * half) * (one + h_ml_sum)
+
+    return T
+
 @jit
 def thermal_phase_curve(xi, hotspot_offset, omega_drag,
                         alpha, C_11, T_s, a_rs, rp_a, A_B,

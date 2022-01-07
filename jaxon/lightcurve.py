@@ -1,5 +1,6 @@
 import numpy as np
-from lightkurve import search_lightcurve
+from lightkurve import search_lightcurve, LightCurveCollection
+from lightkurve.correctors import CBVCorrector
 from astropy.stats import sigma_clip, mad_std
 import astropy.units as u
 from kelp import Filter
@@ -8,7 +9,8 @@ import pymc3 as pm
 import pymc3_ext as pmx
 
 from .utils import floatX
-from .hatp7 import get_planet_params
+# from .hatp7 import get_planet_params
+from .planets import get_planet_params
 
 __all__ = [
     'eclipse_model',
@@ -18,9 +20,10 @@ __all__ = [
 
 cadence = "long"
 cadence_duration = 30 * u.min
+cbv_type = ['SingleScale']
+cbv_indices = [np.arange(1, 9)]
 
-
-def get_light_curve(quarter=None, cadence=cadence):
+def get_light_curve(planet_name, quarter=None, cadence=cadence):
     """
     Parameters
     ----------
@@ -28,25 +31,26 @@ def get_light_curve(quarter=None, cadence=cadence):
         Kepler cadence mode
     """
     (planet_name, a_rs, a_rp, T_s, rprs, t0, period, eclipse_half_dur, b,
-        rstar, rho_star, rp_rstar, mstar, mass) = get_planet_params()
+        rstar, rho_star, rp_rstar, mstar, mass) = get_planet_params(
+        planet_name
+    )
 
     lcf = search_lightcurve(
         planet_name, mission="Kepler", cadence=cadence,
         quarter=quarter
-    ).download_all()
+    ).download_all(flux_column='sap_flux')
 
-    slc = lcf.stitch()
+    corrected_lcs = []
+    for each_quarter_lc in lcf:
+        cbvCorrector = CBVCorrector(each_quarter_lc)
+        # Perform the correction
+        cbvCorrector.correct_gaussian_prior(cbv_type=cbv_type,
+                                            cbv_indices=cbv_indices,
+                                            alpha=1e-4)
+        corrected_lcs.append(cbvCorrector.corrected_lc)
 
-    phases = ((slc.time.jd - t0) % period) / period
-    in_transit = (
-        (phases < 1.5 * eclipse_half_dur) |
-        (phases > 1 - 1.5 * eclipse_half_dur)
-    )
-    out_of_transit = np.logical_not(in_transit)
-
-    slc = slc.flatten(
-        polyorder=3, break_tolerance=10, window_length=1001, mask=~out_of_transit
-    ).remove_nans()
+    collection = LightCurveCollection(corrected_lcs)
+    slc = collection.stitch().remove_nans()
 
     phases = ((slc.time.jd - t0) % period) / period
     in_transit = (
@@ -57,7 +61,7 @@ def get_light_curve(quarter=None, cadence=cadence):
 
     sc = sigma_clip(
         np.ascontiguousarray(slc.flux[out_of_transit], dtype=floatX),
-        maxiters=100, sigma=8, stdfunc=mad_std
+        maxiters=100, sigma=5, stdfunc=mad_std
     )
 
     phase = np.ascontiguousarray(
@@ -94,7 +98,9 @@ def get_filter():
     return filt_wavelength, filt_trans
 
 
-def eclipse_model(quarter=None, cadence_duration=cadence_duration):
+def eclipse_model(
+        planet_name, quarter=None, cadence_duration=cadence_duration
+):
     """
     Compute the (static) eclipse model
 
@@ -110,8 +116,12 @@ def eclipse_model(quarter=None, cadence_duration=cadence_duration):
         in-eclipse.
     """
     (planet_name, a_rs, a_rp, T_s, rprs, t0, period, eclipse_half_dur, b,
-        rstar, rho_star, rp_rstar, mstar, mass) = get_planet_params()
-    phase, time, flux_normed, flux_normed_err = get_light_curve(quarter=quarter)
+        rstar, rho_star, rp_rstar, mstar, mass) = get_planet_params(
+        planet_name
+    )
+    phase, time, flux_normed, flux_normed_err = get_light_curve(
+        planet_name, quarter=quarter
+    )
 
     with pm.Model():
         # Define a Keplerian orbit using `exoplanet`:

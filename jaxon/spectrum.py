@@ -1,3 +1,4 @@
+from functools import partial
 import os
 
 import numpy as np
@@ -31,7 +32,7 @@ nus_spitzer, wav_spitzer, res_spitzer = nugrid(
 
 nus = jnp.concatenate([nus_spitzer, nus_wfc3, nus_kepler])
 wav = jnp.concatenate([wav_kepler, wav_wfc3, wav_spitzer])
-nus_vis, wav_vis, res_vis = nugrid(300, 5500, 100, "nm", xsmode="modit")
+nus_vis, wav_vis, res_vis = nugrid(300, 5500, 200, "nm", xsmode="modit")
 
 # bb_star = BlackBody(temperature=6300*u.K)
 
@@ -117,7 +118,7 @@ res = 0.2
 
 @jit
 def exojax_spectrum(
-        temperatures, vmr_prod, mmr_TiO, Parr, dParr, nus, wav
+    temperatures, vmr_prod, mmr_TiO, Parr, dParr, nus, wav,
 ):
     Tarr = get_Tarr(temperatures, Parr)
 

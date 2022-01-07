@@ -196,8 +196,11 @@ def integrate_planck(filt_wavelength, filt_trans,
     return int_bb_num
 
 
-@jit
-def reflected_phase_curve(phases, omega, g, a_rp):
+@partial(jit, static_argnums=(4,))
+def reflected_phase_curve(
+        phases, omega, g, a_rp,
+        scattering_phase_func='Henyey-Greenstein'
+    ):
     """
     Reflected light phase curve for a homogeneous sphere by
     Heng, Morris & Kitzmann (2021).
@@ -230,13 +233,23 @@ def reflected_phase_curve(phases, omega, g, a_rp):
         1e-10
     )
 
-    abs_alpha = jnp.abs(alpha)  # .astype(floatX)
+    abs_alpha = jnp.abs(alpha)
     gamma = jnp.sqrt(1 - omega)
     eps = (1 - gamma) / (1 + gamma)
 
-    # Equation 34 for Henyey-Greestein
-    P_star = (1 - g ** 2) / (1 + g ** 2 +
-                             2 * g * jnp.cos(alpha)) ** 1.5
+    if scattering_phase_func.lower() == 'henyey-greenstein':
+        # Equation 34 for Henyey-Greenstein
+        P_star = (1 - g ** 2) / (1 + g ** 2 +
+                                 2 * g * jnp.cos(alpha)) ** 1.5
+
+    elif scattering_phase_func.lower() == 'isotropic':
+        P_star = 1
+    elif scattering_phase_func.lower() == 'rayleigh':
+        P_star = 3/4 * (1 + jnp.cos(alpha) ** 2)
+    else:
+        raise ValueError("Scattering phase function {} not recognized"
+                         .format(scattering_phase_func))
+
     # Equation 36
     P_0 = (1 - g) / (1 + g) ** 2
 
@@ -437,9 +450,9 @@ def reflected_phase_curve_inhomogeneous(phases, omega_0, omega_prime, x1, x2,
 
     # Redefine alpha to be on (-pi, pi)
     alpha = (2 * np.pi * phases - np.pi).astype(floatX)
-    abs_alpha = np.abs(alpha).astype(floatX)
-    alpha_sort_order = np.argsort(alpha)
-    sin_abs_sort_alpha = np.sin(abs_alpha[alpha_sort_order]).astype(floatX)
+    abs_alpha = jnp.abs(alpha).astype(floatX)
+    alpha_sort_order = jnp.argsort(alpha)
+    sin_abs_sort_alpha = jnp.sin(abs_alpha[alpha_sort_order]).astype(floatX)
     sort_alpha = alpha[alpha_sort_order].astype(floatX)
 
     # Equation 34 for Henyey-Greestein
